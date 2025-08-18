@@ -22,11 +22,23 @@ class  Book:
 
 class BookRequest(BaseModel):
 
-    id : Optional[int] = None 
+    id : Optional[int] = Field(description="This field is optional",default=None)
     title : str = Field(min_length=3,max_length=15)
     author : str = Field(min_length=3,max_length=20)
     description : str = Field(min_length=5,max_length=50)
     rating : int = Field(gt=-1,lt=6)
+
+    model_config = {
+        
+        "json_schema_extra": {
+            "example": {
+                "title": "A new book",
+                "author": "Mostafa",
+                "description": "A new description of a book",
+                "rating": 5
+            }
+        }
+    }
 
 
 Books = [
