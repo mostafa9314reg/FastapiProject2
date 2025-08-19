@@ -65,3 +65,9 @@ def create_book(book_request:BookRequest):
 def find_book_id(book:Book):
     book.id =1 if len(Books)<0 else Books[-1].id + 1
     return book
+
+@app.get('/book/{book_id}')
+def  read_book(book_id:int):
+    for book in Books :
+        if book.id == book_id :
+            return book
