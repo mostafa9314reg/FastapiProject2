@@ -71,3 +71,13 @@ def  read_book(book_id:int):
     for book in Books :
         if book.id == book_id :
             return book
+        
+
+@app.get('/book/')
+def read_book_by_rating(book_rating : int):
+    Books_by_rating = []
+    for book in Books:
+        if book.rating == book_rating:
+            Books_by_rating.append(book)
+    return Books_by_rating
+
