@@ -1,8 +1,8 @@
 from typing import Optional
-from fastapi import FastAPI,Body,Path,Query
+from fastapi import FastAPI,Body,Path,Query,HTTPException
 
 from  pydantic import BaseModel,Field
-
+from starlette import status
 app = FastAPI()
 
 class  Book:
@@ -52,7 +52,7 @@ Books = [
     Book(4,'title4','author4','desc1',3,2000)
 ]
 
-@app.get('/allbooks/')
+@app.get('/allbooks/',status_code=status.HTTP_200_OK)
 async def read_all_books():
     return Books
 
@@ -60,7 +60,7 @@ async def read_all_books():
 #def create_book(book_request = Body()):
 #    Books.append(book_request)
 
-@app.get("/books/publish/")
+@app.get("/books/publish/",status_code=status.HTTP_200_OK)
 async def read_book_by_publish(published_date:int = Query(gt=1990,lt=2030)):
     Books_by_published = []
     for book in Books:
@@ -69,7 +69,7 @@ async def read_book_by_publish(published_date:int = Query(gt=1990,lt=2030)):
     return Books_by_published
 
 
-@app.post('/book/create/')
+@app.post('/book/create/',status_code=status.HTTP_201_CREATED)
 async def create_book(book_request:BookRequest):
     new_book = Book(**book_request.model_dump())
     Books.append(find_book_id(new_book))
@@ -79,14 +79,15 @@ def find_book_id(book:Book):
     book.id =1 if len(Books)<0 else Books[-1].id + 1
     return book
 
-@app.get('/book/{book_id}')
+@app.get('/book/{book_id}',status_code=status.HTTP_200_OK)
 async def  read_book(book_id:int=Path(ge=0)):
     for book in Books :
         if book.id == book_id :
             return book
+    raise HTTPException(status_code=404,detail="Item not found")
         
 
-@app.get('/book/')
+@app.get('/book/',status_code=status.HTTP_200_OK)
 async def read_book_by_rating(book_rating : int=Query(gt=0,lt=7)):
     Books_by_rating = []
     for book in Books:
@@ -94,16 +95,24 @@ async def read_book_by_rating(book_rating : int=Query(gt=0,lt=7)):
             Books_by_rating.append(book)
     return Books_by_rating
 
-@app.put('/book/update_book/')
+@app.put('/book/update_book/',status_code=status.HTTP_204_NO_CONTENT)
 async def update_book(book:BookRequest):
+    book_changed = False
     for i in range(len(Books)):
         if Books[i].id  == book.id:
             Books[i] = book
+            book_changed = True
+    if not book_changed:
+        raise HTTPException(status_code=404,detail="Item not found")        
 
 
-@app.delete('/book/delete_book/')
+@app.delete('/book/delete_book/',status_code=status.HTTP_204_NO_CONTENT)
 async def deletebook(book_id:int=Query(gt=0)):
+    book_changed = False
     for i in range(len(Books)):
         if Books[i].id == book_id:
             Books.pop(i)
+            book_changed = True
             break   
+    if not book_changed :
+        raise HTTPException(status_code=404,detail="Item not found")
